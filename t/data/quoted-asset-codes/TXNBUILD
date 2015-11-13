@@ -1,0 +1,8 @@
+name = "quoted-asset-code-jrnl"
+version = "3.4.9"
+release = 1
+description = "Transactions with quoted asset codes"
+source = "quoted-asset-codes.txn"
+sha256sums = "asdfasfd"
+
+# vim: ft=toml

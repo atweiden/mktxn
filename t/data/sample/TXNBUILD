@@ -1,0 +1,8 @@
+name = "mysamplejrnl"
+version = "0.1.9"
+release = 1
+description = "Sample transactions"
+source = "sample.txn"
+sha256sums = "57dc9941f776a152de13da4dff556dc9794ae9aadfa0dff069f2a25e0db871e3"
+
+# vim: ft=toml
