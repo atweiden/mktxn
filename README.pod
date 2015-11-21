@@ -11,8 +11,14 @@ TXN - Double-entry bookkeeping transaction journal parser and serializer
 
 cmdline:
 
-  $ mktxn
-  $ mktxn -m="json" path/to/transaction/journal
+  $ mktxn \
+      --name="txnjrnl" \
+      --version="1.0.0" \
+      --release=1 \
+      --description="My transactions" \
+      sample.txn
+
+  $ mktxn -m=json serialize path/to/transaction/journal
 
 perl6:
 
@@ -49,9 +55,13 @@ journal metadata useful in simple queries.
       release: "1",
       owner: "",
       description: "",
+      config: {
+        profile-name: "first",
+        ...
+      },
       count: 7,
       count-involving-aux-assets: 2,
-      count-involving-aux-assets-xe-missing: 1
+      count-involving-aux-assets-xe-missing: 1,
       entities-seen: ["Entity", "Names", "Go", "Here"]
     }
 
@@ -111,70 +121,7 @@ txn.json contains the output of serializing the transaction journal to JSON.
     ]
 
 .TXNINFO and txn.json are compressed and saved as filename
-C<$name-$version-$release.txn.tar.xz> in the working directory of the
-TXNBUILD.
-
-=head2 TXNBUILD
-
-TXNBUILD files tell C<mktxn> how to build txns in release mode with
-the following variables:
-
-=over
-
-=item name (required)
-
-Unique name of the transaction journal. Name must be valid Arch PKGBUILD
-C<pkgname>. See L<pacman source|https://projects.archlinux.org/pacman.git/tree/scripts/libmakepkg/lint_pkgbuild/pkgname.sh.in>.
-
-Example value:
-
-  "mysamplejrnl"
-
-=item version (required)
-
-Version number of the transaction journal. Must be valid Arch PKGBUILD
-C<pkgver>.
-
-Example value:
-
-  "0.1.9"
-
-=item release
-
-Release count.
-
-Example value:
-
-  1
-
-=item description
-
-Description of transaction journal.
-
-Example value:
-
-  "Sample transactions"
-
-=item source (required)
-
-Transaction journal to serialize. Journal must be in working directory
-of TXNBUILD.
-
-Example value:
-
-  "sample.txn"
-
-=item sha256sums
-
-SHA256 message digest of transaction journal given in C<source>.
-
-Example value:
-
-  "57dc9941f776a152de13da4dff556dc9794ae9aadfa0dff069f2a25e0db871e3"
-
-=back
-
-File format is TOML.
+C<$pkgname-$pkgver-$pkgrel.txn.tar.xz> in the current working directory.
 
 =head1 INSTALLATION
 
@@ -183,8 +130,6 @@ File format is TOML.
 =over
 
 =item Rakudo Perl 6
-
-=item L<Config::TOML|https://github.com/atweiden/config-toml>
 
 =item L<Digest::xxHash|https://github.com/atweiden/digest-xxhash>
 

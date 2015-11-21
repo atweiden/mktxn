@@ -52,7 +52,7 @@ method !resolve_includes(Str:D $journal_orig) returns Str:D
             "$line\n",
             :actions(TXN::Parser::Actions),
             :rule<include_line>
-        ) ?? self.preprocess($/.made) !! $line ~ "\n";
+        ) ?? self.preprocess(:file($/.made)) !! $line ~ "\n";
     }
     $journal;
 }

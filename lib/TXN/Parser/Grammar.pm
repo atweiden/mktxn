@@ -611,6 +611,19 @@ token filename:basic { <var_name_string_basic> }
 token filename:literal { <var_name_string_literal> }
 
 # end include grammar }}}
+# extends grammar {{{
+
+token extends_line
+{
+    ^^ \h* <extends> \h* <.comment>? $$ \n
+}
+
+token extends
+{
+    extends \h+ <journalname=filename>
+}
+
+# end extends grammar }}}
 # journal grammar {{{
 
 token TOP
@@ -628,6 +641,7 @@ token segment:blank { <.blank_line> }
 token segment:comment { <.comment_line> }
 token segment:entry { <entry> }
 token segment:include { <include_line> }
+token segment:extends { <extends_line> }
 
 token blank_line
 {

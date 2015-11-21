@@ -687,6 +687,32 @@ method include_line($/)
 }
 
 # end include grammar-actions }}}
+# extends grammar-actions {{{
+
+method extends($/)
+{
+    # transaction journal to extend from
+    my Str $journalname = $<journalname>.made;
+
+    # can we find it?
+    if $journalname.IO.e && $journalname.IO.r
+    {
+        # extend it
+        make $journalname;
+    }
+    else
+    {
+        # exit with an error
+        die X::TXN::Parser::Extends.new(:$journalname);
+    }
+}
+
+method extends_line($/)
+{
+    make $<extends>.made;
+}
+
+# end extends grammar-actions }}}
 # journal grammar-actions {{{
 
 method entry($/)

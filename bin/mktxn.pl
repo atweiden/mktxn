@@ -4,8 +4,8 @@
 
 
 use v6;
-our $PROGRAM = 'mktxn';
-our $VERSION = '0.0.1';
+constant $PROGRAM = 'mktxn';
+constant $VERSION = '0.0.1';
 
 
 
@@ -35,70 +35,61 @@ sub get_entities_seen(@txn) returns Array[Str]
 # -----------------------------------------------------------------------------
 
 # release
-multi sub MAIN(Str:D :t(:$target) = 'TXNBUILD')
+multi sub MAIN(
+    Str:D $file,
+    Str :D(:$description),
+    Str :N(:$name),
+    Int :R(:$release),
+    Str :T(:$template),
+    Str :V(:$version)
+)
 {
-    use Config::TOML;
+    my Str $dt = ~DateTime.now;
+
     use JSON::Tiny;
     use TXN::Parser;
 
-    # get directory of TXNBUILD
-    my Str $txnbuild_dir = $target.IO.abspath.IO.dirname;
+    # make build directory
+    my Str $build_dir = $*CWD ~ '/build';
+    my Str $txn_file = "$build_dir/txn.json";
+    my Str $txninfo_file = "$build_dir/.TXNINFO";
+    mkdir $build_dir;
 
-    # error unless mktxn is being run in same directory as TXNBUILD
-    unless $txnbuild_dir ~~ ~$*CWD
-    {
-        die "Sorry, mktxn must be run in same directory as TXNBUILD";
-    }
-
-    # make srcdir
-    my Str $srcdir = $txnbuild_dir ~ '/src';
-    my Str $txn_file = "$srcdir/txn.json";
-    my Str $txninfo_file = "$srcdir/.TXNINFO";
-    mkdir $srcdir;
-
-    # parse TXNBUILD
-    my %txnbuild = from-toml(slurp $target);
-
-    # find transaction journal file to parse and serialize
-    my Str $file = %txnbuild<source> || die "Sorry, missing source in TXNBUILD";
-    my Str $file_dir = $file.IO.abspath.IO.dirname;
-
-    # error unless transaction journal is in same directory as TXNBUILD
-    unless $txnbuild_dir ~~ $file_dir
-    {
-        die "Sorry, transaction journal must be in same directory as TXNBUILD";
-    }
-
-    # build .TXNINFO
+    # parse build template into .TXNINFO
     my %txninfo;
 
-    # note the time
-    my Str $dt = ~DateTime.now;
+    if $template
+    {
+        my %template = from-toml(slurp $template);
+        %txninfo<name> = %template<name> if %template<name>;
+        %txninfo<version> = %template<version> if %template<version>;
+        %txninfo<release> = Int(%template<release>) if %template<release>;
+        %txninfo<description> = %template<description> if %template<description>;
+    }
+
+    # cmdline options override values defined in template
+    %txninfo<name> = $name if $name;
+    %txninfo<version> = $version if $version;
+    %txninfo<release> = Int($release) if $release;
+    %txninfo<description> = $description if $description;
 
     # note the compiler name and version, and time of compile
     %txninfo<compiler> = "$PROGRAM $VERSION $dt";
 
-    # TODO: validate these
-    %txninfo<name> = %txnbuild<name> || die "Sorry, name missing from TXBUILD";
-    %txninfo<version> = %txnbuild<version>
-        || die "Sorry, version missing from TXNBUILD";
-    %txninfo<release> = %txnbuild<release> || 1;
-    %txninfo<description> = %txnbuild<description> || '';
-
-    say "Making txn: %txnbuild<name> ",
-        "%txnbuild<version>-%txnbuild<release> ($dt)";
+    say "Making txn: %txninfo<name> %txninfo<version>-%txninfo<release> ($dt)";
 
     # parse transactions from journal
-    my @txn = TXN::Parser.parsefile($file, :json).made;
+    my Str:D $journal = TXN::Parser.preprocess(:$file);
+    my @txn = TXN::Parser.parse($journal, :json).made;
 
     # compute basic stats about the transaction journal
     %txninfo<count> = @txn.elems;
-    %txninfo<entities-seen> = get_entities_seen(@txn);
+    %txninfo<entities_seen> = get_entities_seen(@txn);
 
     # serialize .TXNINFO to JSON
     spurt $txninfo_file, to-json(%txninfo) ~ "\n";
 
-    say "Creating txn \"%txnbuild<name>\"...";
+    say "Creating txn \"%txninfo<name>\"...";
 
     # serialize transactions to JSON
     spurt $txn_file, to-json(@txn) ~ "\n";
@@ -107,23 +98,23 @@ multi sub MAIN(Str:D :t(:$target) = 'TXNBUILD')
     my Str $tarball =
         "%txninfo<name>-%txninfo<version>-%txninfo<release>\.txn.tar.xz";
     shell "tar \\
-             -C $srcdir \\
+             -C $build_dir \\
              --xz \\
              -cvf $tarball \\
              {$txninfo_file.IO.basename} {$txn_file.IO.basename}";
 
-    say "Finished making: %txnbuild<name> ",
-        "%txnbuild<version>-%txnbuild<release> ($dt)";
+    say "Finished making: %txninfo<name> ",
+        "%txninfo<version>-%txninfo<release> ($dt)";
 
     say "Cleaning up...";
 
-    # clean up srcdir
-    dir($srcdir)».unlink;
-    rmdir $srcdir;
+    # clean up build directory
+    dir($build_dir)».unlink;
+    rmdir $build_dir;
 }
 
 # serialize
-multi sub MAIN(Str:D $file, Str:D :m(:$mode) = 'perl', *%opts)
+multi sub MAIN('serialize', Str:D $file, Str:D :m(:$mode) = 'perl', *%opts)
 {
     use TXN;
     given $mode
@@ -154,16 +145,29 @@ multi sub MAIN(Str:D $file, Str:D :m(:$mode) = 'perl', *%opts)
 
 sub USAGE()
 {
-    my Str $help_text = q:to/EOF/;
+    my Str:D $help_text = q:to/EOF/;
     Usage:
-      mktxn [--target="TXNBUILD"]   Make release tarball
-      mktxn [--mode="MODE"] "FILE"  Parse transaction journal
+      mktxn [--name=NAME]
+            [--version=VERSION]
+            [--release=RELEASE]
+            [--description=DESCRIPTION]
+            [--template=TEMPLATE]
+            FILE                            Make release build from file
+      mktxn [--mode=MODE] serialize FILE    Serialize transaction journal
 
     optional arguments:
+      -D, --description=DESCRIPTION
+        the description of release build
+      -N, --name=NAME
+        the name of release build
+      -R, --release=RELEASE
+        the release number of release build
+      -T, --template=TEMPLATE
+        the location of the config template for release build
+      -V, --version=VERSION
+        the version number of release build
       -m, --mode=MODE
-        json, perl
-      -t, --target=TXNBUILD
-        the location of the TXNBUILD
+        the serialization format (json, perl)
     EOF
     say $help_text.trim;
 }

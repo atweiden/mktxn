@@ -35,4 +35,18 @@ class X::TXN::Parser::Include is Exception
     }
 }
 
+class X::TXN::Parser::Extends is Exception
+{
+    has Str $.journalname;
+
+    method message()
+    {
+        say qq:to/EOF/;
+        Sorry, could not locate transaction journal to extend
+
+            「$.journalname」
+        EOF
+    }
+}
+
 # vim: ft=perl6
