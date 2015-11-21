@@ -131,6 +131,8 @@ C<$pkgname-$pkgver-$pkgrel.txn.tar.xz> in the current working directory.
 
 =item Rakudo Perl 6
 
+=item L<Config::TOML|https://github.com/atweiden/config-toml>
+
 =item L<Digest::xxHash|https://github.com/atweiden/digest-xxhash>
 
 =item L<JSON::Tiny|https://github.com/moritz/json>

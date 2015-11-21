@@ -46,9 +46,6 @@ multi sub MAIN(
 {
     my Str $dt = ~DateTime.now;
 
-    use JSON::Tiny;
-    use TXN::Parser;
-
     # make build directory
     my Str $build_dir = $*CWD ~ '/build';
     my Str $txn_file = "$build_dir/txn.json";
@@ -60,6 +57,7 @@ multi sub MAIN(
 
     if $template
     {
+        use Config::TOML;
         my %template = from-toml(slurp $template);
         %txninfo<name> = %template<name> if %template<name>;
         %txninfo<version> = %template<version> if %template<version>;
@@ -79,6 +77,7 @@ multi sub MAIN(
     say "Making txn: %txninfo<name> %txninfo<version>-%txninfo<release> ($dt)";
 
     # parse transactions from journal
+    use TXN::Parser;
     my Str:D $journal = TXN::Parser.preprocess(:$file);
     my @txn = TXN::Parser.parse($journal, :json).made;
 
@@ -87,6 +86,7 @@ multi sub MAIN(
     %txninfo<entities_seen> = get_entities_seen(@txn);
 
     # serialize .TXNINFO to JSON
+    use JSON::Tiny;
     spurt $txninfo_file, to-json(%txninfo) ~ "\n";
 
     say "Creating txn \"%txninfo<name>\"...";
