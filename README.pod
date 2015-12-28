@@ -23,6 +23,17 @@ cmdline:
 perl6:
 
   use TXN;
+
+  # parse transactions from string
+  my $txn = Q:to/EOF/;
+  2014-01-01 "I started the year with $1000 in Bankwest"
+    Assets:Personal:Bankwest:Cheque    $1000 USD
+    Equity:Personal                    $1000 USD
+  EOF
+  my @txn = from-txn($txn);
+  my $json = from-txn($txn, :json);
+
+  # parse transactions from file
   my $file = 'sample.txn';
   my @txn = from-txn(:$file);
   my $json = from-txn(:$file, :json);
