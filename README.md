@@ -67,20 +67,19 @@ journal metadata useful in simple queries.
 
 ```json
 {
-  compiler: "mktxn 0.0.1 2015-10-12T20:48:23Z",
-  name: "mysamplejrnl",
-  version: "0.1.9",
-  release: "1",
-  owner: "",
-  description: "",
-  config: {
-    profile-name: "first",
-    ...
+  "compiler": "mktxn 0.0.1 2015-10-12T20:48:23Z",
+  "name": "mysamplejrnl",
+  "version": "0.1.9",
+  "release": "1",
+  "owner": "",
+  "description": "",
+  "config": {
+    "profile-name": "first"
   },
-  count: 7,
-  count-involving-aux-assets: 2,
-  count-involving-aux-assets-xe-missing: 1,
-  entities-seen: ["Entity", "Names", "Go", "Here"]
+  "count": 7,
+  "count-involving-aux-assets": 2,
+  "count-involving-aux-assets-xe-missing": 1,
+  "entities-seen": ["Entity", "Names", "Go", "Here"]
 }
 ```
 
