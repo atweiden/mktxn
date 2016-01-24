@@ -358,19 +358,19 @@ method var_name:bare ($/)
     make ~$/;
 }
 
-method var_name_string_basic($/)
+method var_name_string:basic ($/)
 {
     make $<string_basic_text>.made;
 }
 
-method var_name:quoted ($/)
-{
-    make $<var_name_string_basic>.made;
-}
-
-method var_name_string_literal($/)
+method var_name_string:literal ($/)
 {
     make $<string_literal_text>.made;
+}
+
+method var_name:quoted ($/)
+{
+    make $<var_name_string>.made;
 }
 
 # end variable name grammar-actions }}}
@@ -495,7 +495,7 @@ method asset_code:bare ($/)
 
 method asset_code:quoted ($/)
 {
-    make $<var_name_string_basic>.made;
+    make $<var_name_string>.made;
 }
 
 method asset_symbol($/)
@@ -599,14 +599,9 @@ method postings($/)
 # end posting grammar-actions }}}
 # include grammar-actions {{{
 
-method filename:basic ($/)
+method filename($/)
 {
-    make $<var_name_string_basic>.made;
-}
-
-method filename:literal ($/)
-{
-    make $<var_name_string_literal>.made;
+    make $<var_name_string>.made;
 }
 
 method include($/)

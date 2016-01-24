@@ -387,29 +387,14 @@ token date_time_omit_local_offset
 # end datetime grammar }}}
 # variable name grammar {{{
 
+# quoted variable names can be either basic strings or literal strings
 proto token var_name {*}
+token var_name:bare { <+alnum +[-]>+ }
+token var_name:quoted { <var_name_string> }
 
-token var_name:bare
-{
-    <+alnum +[-]>+
-}
-
-# only double quoted variable names are allowed
-token var_name:quoted
-{
-    <var_name_string_basic>
-}
-
-# quoted variable names must contain chars inside double quotes
-token var_name_string_basic
-{
-    '"' <string_basic_text> '"'
-}
-
-token var_name_string_literal
-{
-    \' <string_literal_text> \'
-}
+proto token var_name_string {*}
+token var_name_string:basic { '"' <string_basic_text> '"' }
+token var_name_string:literal { \' <string_literal_text> \' }
 
 # end variable grammar }}}
 # reserved words grammar {{{
@@ -547,16 +532,8 @@ token amount
 }
 
 proto token asset_code {*}
-
-token asset_code:bare
-{
-    <:Letter>+
-}
-
-token asset_code:quoted
-{
-    <var_name_string_basic>
-}
+token asset_code:bare { <:Letter>+ }
+token asset_code:quoted { <var_name_string> }
 
 # e.g. http://www.xe.com/symbols.php
 token asset_symbol
@@ -606,9 +583,10 @@ token include
     include \h+ <filename>
 }
 
-proto token filename {*}
-token filename:basic { <var_name_string_basic> }
-token filename:literal { <var_name_string_literal> }
+token filename
+{
+    <var_name_string>
+}
 
 # end include grammar }}}
 # extends grammar {{{
