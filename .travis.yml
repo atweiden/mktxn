@@ -23,5 +23,5 @@ before_install:
   - cd $TRAVIS_BUILD_DIR
 
 install:
-  - rakudobrew build-panda
+  - rakudobrew build panda
   - panda --notests installdeps .
