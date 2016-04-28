@@ -504,7 +504,7 @@ method asset-quantity:float ($/)
     make $<float-unsigned>.made;
 }
 
-method xe($/)
+method xe-main($/)
 {
     # asset code
     my Str $asset-code = $<asset-code>.made;
@@ -518,6 +518,18 @@ method xe($/)
 
     # make exchange rate
     make %(:$asset-code, :$asset-quantity, :$asset-symbol);
+}
+
+method xe-secondary($/)
+{
+    make $<sxe>.made;
+}
+
+method xe($/)
+{
+    my %xe = $<xe-main>.made;
+    %xe<xe-secondary> = $<xe-secondary>.made if $<xe-secondary>;
+    make %xe;
 }
 
 method exchange-rate($/)

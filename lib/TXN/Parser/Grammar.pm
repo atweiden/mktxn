@@ -556,8 +556,13 @@ token exchange-rate
     '@' \h+ <xe>
 }
 
-# negative xe not allowed
+# main exchange rate, negative xe not allowed
 token xe
+{
+    <xe-main> [\h+ <xe-secondary>]?
+}
+
+token xe-main
 {
     # @ $830.024 USD
     <asset-symbol>? <asset-quantity> \h+ <asset-code>
@@ -567,6 +572,15 @@ token xe
     # @ USD $830.024
     <asset-code> \h+ <asset-symbol>? <asset-quantity>
 }
+
+# secondary exchange rate
+token xe-secondary
+{
+    <xe-secondary-symbol> \h+ <sxe=xe-main>
+}
+
+proto token xe-secondary-symbol {*}
+token xe-secondary-symbol:texas { '==>' }
 
 # --- end posting amount grammar }}}
 
