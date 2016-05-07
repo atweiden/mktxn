@@ -2,4 +2,4 @@
   Assets:FooCorp:Bankwest:Cheque      $1000.00 USD
   Equity:FooCorp                      $1000.00 USD
 
-# vim: ft=txn
+-- vim: ft=txn
