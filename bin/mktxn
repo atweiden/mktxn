@@ -128,25 +128,25 @@ sub resolve-txn-file-path(Str $file) returns Str
 
 # end resolve-txn-file-path }}}
 
-# name-version-release {{{
+# pkgname-pkgver-pkgrel {{{
 
-multi sub name-version-release(
+multi sub pkgname-pkgver-pkgrel(
     %txninfo,
     :@checks! where *.elems == 1
 ) returns Array
 {
-    name-version-release(%txninfo, :checks[|@checks, %txninfo<version>:exists]);
+    pkgname-pkgver-pkgrel(%txninfo, :checks[|@checks, %txninfo<pkgver>:exists]);
 }
 
-multi sub name-version-release(
+multi sub pkgname-pkgver-pkgrel(
     %txninfo,
     :@checks! where *.elems == 2
 ) returns Array
 {
-    name-version-release(%txninfo, :checks[|@checks, %txninfo<release>:exists]);
+    pkgname-pkgver-pkgrel(%txninfo, :checks[|@checks, %txninfo<pkgrel>:exists]);
 }
 
-multi sub name-version-release(
+multi sub pkgname-pkgver-pkgrel(
     %txninfo,
     :@checks! where *.elems == 3
 ) returns Array
@@ -154,9 +154,9 @@ multi sub name-version-release(
     @checks;
 }
 
-sub has-name-version-release(%txninfo) returns Bool
+sub has-pkgname-pkgver-pkgrel(%txninfo) returns Bool
 {
-    given name-version-release(%txninfo, :checks[%txninfo<name>:exists])
+    given pkgname-pkgver-pkgrel(%txninfo, :checks[%txninfo<pkgname>:exists])
     {
         when .grep(*.so).elems == .elems
         {
@@ -168,15 +168,15 @@ sub has-name-version-release(%txninfo) returns Bool
             my Str @missing;
             if $_[0] eqv False
             {
-                push @missing, 'name';
+                push @missing, 'pkgname';
             }
             if $_[1] eqv False
             {
-                push @missing, 'version number';
+                push @missing, 'pkgver';
             }
             if $_[2] eqv False
             {
-                push @missing, 'release number';
+                push @missing, 'pkgrel';
             }
             $message ~= @missing.join(', ');
             $message ~= ' missing from %txninfo. Got:' ~ "\n";
@@ -186,7 +186,7 @@ sub has-name-version-release(%txninfo) returns Bool
     }
 }
 
-# end name-version-release }}}
+# end pkgname-pkgver-pkgrel }}}
 
 
 
@@ -198,21 +198,20 @@ sub has-name-version-release(%txninfo) returns Bool
 # release
 multi sub MAIN(
     Str:D $file,
-    Str :D(:$description),
-    Str :N(:$name),
-    Int :R(:$release),
+    Str :D(:$pkgdesc),
+    Str :N(:$pkgname),
+    Int :R(:$pkgrel),
     Str :T(:$template),
-    Str :V(:$version)
+    Str :V(:$pkgver)
 )
 {
-    my Str:D $f = resolve-txn-file-path($file);
-
     my Str $dt = ~DateTime.now;
+    my Str:D $f = resolve-txn-file-path($file);
 
     # make build directory
     my Str $build-dir = $*CWD ~ '/build';
-    my Str $txnjson-file = "$build-dir/txn.json";
     my Str $txninfo-file = "$build-dir/.TXNINFO";
+    my Str $txnjson-file = "$build-dir/txn.json";
     mkdir $build-dir;
 
     # parse build template into .TXNINFO
@@ -222,20 +221,20 @@ multi sub MAIN(
     {
         use Config::TOML;
         my %template = from-toml(:file($template));
-        %txninfo<name> = %template<name> if %template<name>;
-        %txninfo<version> = %template<version> if %template<version>;
-        %txninfo<release> = Int(%template<release>) if %template<release>;
-        %txninfo<description> = %template<description> if %template<description>;
+        %txninfo<pkgname> = %template<pkgname> if %template<pkgname>;
+        %txninfo<pkgver> = %template<pkgver> if %template<pkgver>;
+        %txninfo<pkgrel> = Int(%template<pkgrel>) if %template<pkgrel>;
+        %txninfo<pkgdesc> = %template<pkgdesc> if %template<pkgdesc>;
     }
 
     # cmdline options override values defined in template
-    %txninfo<name> = $name if $name;
-    %txninfo<version> = $version if $version;
-    %txninfo<release> = Int($release) if $release;
-    %txninfo<description> = $description if $description;
+    %txninfo<pkgname> = $pkgname if $pkgname;
+    %txninfo<pkgver> = $pkgver if $pkgver;
+    %txninfo<pkgrel> = Int($pkgrel) if $pkgrel;
+    %txninfo<pkgdesc> = $pkgdesc if $pkgdesc;
 
-    # check for existence of name, version, and release
-    die unless has-name-version-release(%txninfo);
+    # check for existence of pkgname, pkgver, and pkgrel
+    die unless has-pkgname-pkgver-pkgrel(%txninfo);
 
     # note the compiler name and version, and time of compile
     %txninfo<compiler> = "$PROGRAM v$VERSION $dt";
@@ -317,24 +316,24 @@ sub USAGE()
 {
     my Str:D $help-text = q:to/EOF/;
     Usage:
-      mktxn [--name=NAME]
-            [--version=VERSION]
-            [--release=RELEASE]
-            [--description=DESCRIPTION]
+      mktxn [--pkgname=NAME]
+            [--pkgver=VERSION]
+            [--pkgrel=RELEASE]
+            [--pkgdesc=DESCRIPTION]
             [--template=TEMPLATE]
             FILE                            Make release build from file
       mktxn [--mode=MODE] serialize FILE    Serialize transaction journal
 
     optional arguments:
-      -D, --description=DESCRIPTION
+      -D, --pkgdesc=DESCRIPTION
         the description of release build
-      -N, --name=NAME
+      -N, --pkgname=NAME
         the name of release build
-      -R, --release=RELEASE
+      -R, --pkgrel=RELEASE
         the release number of release build
       -T, --template=TEMPLATE
         the location of the config template for release build
-      -V, --version=VERSION
+      -V, --pkgver=VERSION
         the version number of release build
       -m, --mode=MODE
         the serialization format (json, perl)
