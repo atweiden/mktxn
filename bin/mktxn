@@ -29,6 +29,167 @@ sub get-entities-seen(@txn) returns Array[Str]
     @entities-seen .= sort;
 }
 
+# resolve-txn-file-path {{{
+
+multi sub exists-readable-file(
+    Str $file,
+    :@checks! where *.elems == 1
+) returns Array
+{
+    exists-readable-file($file, :checks[|@checks, $file.IO.r]);
+}
+
+multi sub exists-readable-file(
+    Str $file,
+    :@checks! where *.elems == 2
+) returns Array
+{
+    exists-readable-file($file, :checks[|@checks, $file.IO.f]);
+}
+
+multi sub exists-readable-file(
+    Str $file,
+    :@checks! where *.elems == 3
+) returns Array
+{
+    @checks;
+}
+
+# you passed a direct-file-name.txn
+multi sub exists-readable-file(
+    Str:D $file where *.chars > 0 && *.IO.extension eq 'txn'
+) returns Bool
+{
+    given exists-readable-file($file, :checks[$file.IO.e])
+    {
+        when $_[0] eqv False
+        {
+            die "Sorry, determined path 「$file」 does not exist";
+        }
+        when [True, True, True]
+        {
+            True;
+        }
+        when [True, True, False]
+        {
+            die "Sorry, determined path 「$file」 was not to file";
+        }
+        when [True, False, True]
+        {
+            die "Sorry, determined path 「$file」 was not readable";
+        }
+        when [True, False, False]
+        {
+            die "Sorry, determined path 「$file」 was not readable";
+        }
+    }
+}
+
+# you used a shortcut by leaving off the trailing chars '.txn'
+multi sub exists-readable-file(Str:D $file where *.chars > 0) returns Bool
+{
+    # append .txn to bare file path
+    given exists-readable-file("$file.txn", :checks["$file.txn".IO.e])
+    {
+        when $_[0] eqv False
+        {
+            die "Sorry, could not find txn file at path 「$file.txn」";
+        }
+        when [True, True, True]
+        {
+            True;
+        }
+        when [True, True, False]
+        {
+            die "Sorry, determined path 「$file.txn」 was not to file";
+        }
+        when [True, False, True]
+        {
+            die "Sorry, determined txn file at 「$file.txn」 was not readable";
+        }
+        when [True, False, False]
+        {
+            die "Sorry, determined path 「$file.txn」 was not readable";
+        }
+    }
+}
+
+# you didn't pass a filename
+multi sub exists-readable-file(Str $file)
+{
+    die "txn file must exist";
+}
+
+sub resolve-txn-file-path(Str $file) returns Str
+{
+    die unless exists-readable-file($file);
+    $file.IO.extension eq 'txn' ?? $file !! "$file.txn";
+}
+
+# end resolve-txn-file-path }}}
+
+# name-version-release {{{
+
+multi sub name-version-release(
+    %txninfo,
+    :@checks! where *.elems == 1
+) returns Array
+{
+    name-version-release(%txninfo, :checks[|@checks, %txninfo<version>:exists]);
+}
+
+multi sub name-version-release(
+    %txninfo,
+    :@checks! where *.elems == 2
+) returns Array
+{
+    name-version-release(%txninfo, :checks[|@checks, %txninfo<release>:exists]);
+}
+
+multi sub name-version-release(
+    %txninfo,
+    :@checks! where *.elems == 3
+) returns Array
+{
+    @checks;
+}
+
+sub has-name-version-release(%txninfo) returns Bool
+{
+    given name-version-release(%txninfo, :checks[%txninfo<name>:exists])
+    {
+        when .grep(*.so).elems == .elems
+        {
+            True;
+        }
+        default
+        {
+            my Str $message = 'Sorry, ';
+            my Str @missing;
+            if $_[0] eqv False
+            {
+                push @missing, 'name';
+            }
+            if $_[1] eqv False
+            {
+                push @missing, 'version number';
+            }
+            if $_[2] eqv False
+            {
+                push @missing, 'release number';
+            }
+            $message ~= @missing.join(', ');
+            $message ~= ' missing from %txninfo. Got:' ~ "\n";
+            $message ~= %txninfo.perl;
+            die $message;
+        }
+    }
+}
+
+# end name-version-release }}}
+
+
+
 
 # -----------------------------------------------------------------------------
 # main
@@ -44,11 +205,13 @@ multi sub MAIN(
     Str :V(:$version)
 )
 {
+    my Str:D $f = resolve-txn-file-path($file);
+
     my Str $dt = ~DateTime.now;
 
     # make build directory
     my Str $build-dir = $*CWD ~ '/build';
-    my Str $txn-file = "$build-dir/txn.json";
+    my Str $txnjson-file = "$build-dir/txn.json";
     my Str $txninfo-file = "$build-dir/.TXNINFO";
     mkdir $build-dir;
 
@@ -71,27 +234,35 @@ multi sub MAIN(
     %txninfo<release> = Int($release) if $release;
     %txninfo<description> = $description if $description;
 
+    # check for existence of name, version, and release
+    die unless has-name-version-release(%txninfo);
+
     # note the compiler name and version, and time of compile
     %txninfo<compiler> = "$PROGRAM v$VERSION $dt";
 
-    say "Making txn: %txninfo<name> %txninfo<version>-%txninfo<release> ($dt)";
+    say "Making txn pkg: %txninfo<name> %txninfo<version>-%txninfo<release> ($dt)";
 
     # parse transactions from journal
     use TXN;
-    my @txn = from-txn(:$file, :json);
+    my @txn = from-txn(:file($f));
 
     # compute basic stats about the transaction journal
     %txninfo<count> = @txn.elems;
     %txninfo<entities-seen> = get-entities-seen(@txn);
 
     # serialize .TXNINFO to JSON
+    # stringify DateTimes in preparation for JSON serialization
+    loop (my Int $i = 0; $i < @txn.elems; $i++)
+    {
+        @txn[$i]<header><date> = ~@txn[$i]<header><date>;
+    }
     use JSON::Tiny;
     spurt $txninfo-file, to-json(%txninfo) ~ "\n";
 
-    say "Creating txn \"%txninfo<name>\"...";
+    say "Creating txn pkg \"%txninfo<name>\"…";
 
     # serialize transactions to JSON
-    spurt $txn-file, to-json(@txn) ~ "\n";
+    spurt $txnjson-file, to-json(@txn) ~ "\n";
 
     # compress
     my Str $tarball =
@@ -100,12 +271,12 @@ multi sub MAIN(
              -C $build-dir \\
              --xz \\
              -cvf $tarball \\
-             {$txninfo-file.IO.basename} {$txn-file.IO.basename}";
+             {$txninfo-file.IO.basename} {$txnjson-file.IO.basename}";
 
     say "Finished making: %txninfo<name> ",
         "%txninfo<version>-%txninfo<release> ($dt)";
 
-    say "Cleaning up...";
+    say "Cleaning up…";
 
     # clean up build directory
     dir($build-dir)».unlink;
@@ -130,7 +301,7 @@ multi sub MAIN('serialize', Str:D $file, Str:D :m(:$mode) = 'perl')
         {
             say "Sorry, invalid mode.\n";
             USAGE();
-            exit;
+            exit 1;
         }
     }
 }
@@ -171,4 +342,4 @@ sub USAGE()
     say $help-text.trim;
 }
 
-# vim: ft=perl6
+# vim: ft=perl6 fdm=marker fdl=0
