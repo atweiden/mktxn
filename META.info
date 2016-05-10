@@ -12,6 +12,7 @@
         "source"     : "https://github.com/atweiden/mktxn"
     },
     "provides" : {
-        "TXN"  : "lib/TXN.pm"
+        "TXN"       : "lib/TXN.pm",
+        "TXN::Make" : "lib/TXN/Make.pm"
     }
 }
