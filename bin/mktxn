@@ -239,7 +239,7 @@ multi sub MAIN(
     # note the compiler name and version, and time of compile
     %txninfo<compiler> = "$PROGRAM v$VERSION $dt";
 
-    say "Making txn pkg: %txninfo<name> %txninfo<version>-%txninfo<release> ($dt)";
+    say "Making txn pkg: %txninfo<pkgname> %txninfo<pkgver>-%txninfo<pkgrel> ($dt)";
 
     # parse transactions from journal
     use TXN;
@@ -258,22 +258,22 @@ multi sub MAIN(
     use JSON::Tiny;
     spurt $txninfo-file, to-json(%txninfo) ~ "\n";
 
-    say "Creating txn pkg \"%txninfo<name>\"…";
+    say "Creating txn pkg \"%txninfo<pkgname>\"…";
 
     # serialize transactions to JSON
     spurt $txnjson-file, to-json(@txn) ~ "\n";
 
     # compress
     my Str $tarball =
-        "%txninfo<name>-%txninfo<version>-%txninfo<release>\.txn.tar.xz";
+        "%txninfo<pkgname>-%txninfo<pkgver>-%txninfo<pkgrel>\.txn.tar.xz";
     shell "tar \\
              -C $build-dir \\
              --xz \\
              -cvf $tarball \\
              {$txninfo-file.IO.basename} {$txnjson-file.IO.basename}";
 
-    say "Finished making: %txninfo<name> ",
-        "%txninfo<version>-%txninfo<release> ($dt)";
+    say "Finished making: %txninfo<pkgname> ",
+        "%txninfo<pkgver>-%txninfo<pkgrel> ($dt)";
 
     say "Cleaning up…";
 

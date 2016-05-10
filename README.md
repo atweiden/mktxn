@@ -9,10 +9,10 @@ Double-entry bookkeeping transaction journal parser and serializer (mktxn)
 
 ```bash
 $ mktxn \
-    --name="txnjrnl" \
-    --version="1.0.0" \
-    --release=1 \
-    --description="My transactions" \
+    --pkgname="txnjrnl" \
+    --pkgver="1.0.0" \
+    --pkgrel=1 \
+    --pkgdesc="My transactions" \
     sample.txn
 
 $ mktxn -m=json serialize path/to/transaction/journal
@@ -61,14 +61,17 @@ transaction journal metadata useful in simple queries.
 
 ```json
 {
-  "count": 1,
-  "name": "fy2013",
-  "entities-seen": [
-    "Personal"
-  ],
-  "compiler": "mktxn v0.0.2 2016-05-09T21:29:06.180250-07:00",
-  "release": 1,
-  "version": "1.0.0"
+   "count" : 112,
+   "pkgrel" : 1,
+   "entities-seen" : [
+      "FooCorp",
+      "Personal",
+      "WigwamLLC"
+   ],
+   "pkgver" : "1.0.0",
+   "pkgname" : "with-includes",
+   "pkgdesc" : "txn with include directives",
+   "compiler" : "mktxn v0.0.2 2016-05-10T10:22:44.054586-07:00"
 }
 ```
 
