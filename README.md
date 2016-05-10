@@ -168,6 +168,18 @@ to JSON.
 - [JSON::Tiny](https://github.com/moritz/json)
 - [TXN::Parser](https://github.com/atweiden/txn-parser)
 
+### Test Dependencies
+
+- [Peru](https://github.com/buildinspace/peru)
+
+To run the tests:
+
+```
+$ git clone https://github.com/atweiden/mktxn && cd mktxn
+$ peru --file=.peru.yaml --sync-dir="$PWD" sync
+$ PERL6LIB=lib prove -r -e perl6
+```
+
 
 ## Licensing
 
