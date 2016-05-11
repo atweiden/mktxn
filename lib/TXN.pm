@@ -7,7 +7,10 @@ unit module TXN;
 multi sub emit(
     Str:D $content,
     Bool :$json,
-    *%opts (Int :$date-local-offset)
+    *%opts (
+        Int :$date-local-offset,
+        Str :$txndir
+    )
 )
 {
     my @txn = TXN::Parser.parse($content, |%opts).made;
@@ -17,7 +20,10 @@ multi sub emit(
 multi sub emit(
     Str:D :$file!,
     Bool :$json,
-    *%opts (Int :$date-local-offset)
+    *%opts (
+        Int :$date-local-offset,
+        Str :$txndir
+    )
 )
 {
     my @txn = TXN::Parser.parsefile($file, |%opts).made;
@@ -47,7 +53,11 @@ multi sub emit(:@txn!, Bool :$json)
 
 multi sub from-txn(
     Str:D $content,
-    *%opts (Int :$date-local-offset, Bool :$json)
+    *%opts (
+        Int :$date-local-offset,
+        Bool :$json,
+        Str :$txndir
+    )
 ) is export
 {
     emit($content, |%opts);
@@ -55,7 +65,11 @@ multi sub from-txn(
 
 multi sub from-txn(
     Str:D :$file!,
-    *%opts (Int :$date-local-offset, Bool :$json)
+    *%opts (
+        Int :$date-local-offset,
+        Bool :$json,
+        Str :$txndir
+    )
 ) is export
 {
     emit(:$file, |%opts);
@@ -74,7 +88,8 @@ multi sub mktxn(
         Str :$pkgver,
         Int :$pkgrel,
         Str :$pkgdesc,
-        Str :$template
+        Str :$template,
+        Str :$txndir
     )
 ) is export
 {
@@ -135,7 +150,8 @@ multi sub mktxn(
         Str :$pkgver,
         Int :$pkgrel,
         Str :$pkgdesc,
-        Str :$template
+        Str :$template,
+        Str :$txndir
     )
 ) is export returns Hash
 {
@@ -150,7 +166,8 @@ multi sub mktxn(
         Str :$pkgver,
         Int :$pkgrel,
         Str :$pkgdesc,
-        Str :$template
+        Str :$template,
+        Str :$txndir
     )
 ) is export returns Hash
 {
@@ -163,7 +180,8 @@ multi sub mktxn(
 
 multi sub build(
     Str:D $content,
-    Int :$date-local-offset = 0,
+    Int :$date-local-offset,
+    Str :$txndir,
     *%opts (
         Str :$pkgname,
         Str :$pkgver,
@@ -174,8 +192,12 @@ multi sub build(
 ) returns Hash
 {
     my Str $dt = ~DateTime.now;
-    my %txninfo = gen-txninfo($dt, :$date-local-offset, |%opts);
-    my @txn = from-txn($content, :$date-local-offset);
+
+    my %h;
+    %h<date-local-offset> = $date-local-offset if $date-local-offset;
+    my %txninfo = gen-txninfo($dt, |%h, |%opts);
+    %h<txndir> = $txndir if $txndir;
+    my @txn = from-txn($content, |%h);
 
     # compute basic stats about the transaction journal
     %txninfo<count> = @txn.elems;
@@ -186,7 +208,8 @@ multi sub build(
 
 multi sub build(
     Str:D :$file!,
-    Int :$date-local-offset = 0,
+    Int :$date-local-offset,
+    Str :$txndir,
     *%opts (
         Str :$pkgname,
         Str :$pkgver,
@@ -198,8 +221,12 @@ multi sub build(
 {
     my Str $dt = ~DateTime.now;
     my Str:D $f = resolve-txn-file-path($file);
-    my %txninfo = gen-txninfo($dt, :$date-local-offset, |%opts);
-    my @txn = from-txn(:file($f), :$date-local-offset);
+
+    my %h;
+    %h<date-local-offset> = $date-local-offset if $date-local-offset;
+    my %txninfo = gen-txninfo($dt, |%h, |%opts);
+    %h<txndir> = $txndir if $txndir;
+    my @txn = from-txn(:file($f), |%h);
 
     # compute basic stats about the transaction journal
     %txninfo<count> = @txn.elems;
@@ -214,12 +241,12 @@ multi sub build(
 
 sub gen-txninfo(
     Str $dt,
-    Int :$date-local-offset,
     Str :$pkgname,
     Str :$pkgver,
     Int :$pkgrel,
     Str :$pkgdesc,
-    Str :$template
+    Str :$template,
+    *%opts (Int :$date-local-offset)
 ) returns Hash
 {
     my %txninfo;
@@ -227,7 +254,7 @@ sub gen-txninfo(
     if $template
     {
         use Config::TOML;
-        my %template = from-toml(:file($template), :$date-local-offset);
+        my %template = from-toml(:file($template), |%opts);
         %txninfo<pkgname> = %template<pkgname> if %template<pkgname>;
         %txninfo<pkgver> = %template<pkgver> if %template<pkgver>;
         %txninfo<pkgrel> = Int(%template<pkgrel>) if %template<pkgrel>;
