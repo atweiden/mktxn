@@ -2,6 +2,9 @@ use v6;
 use TXN::Parser;
 unit module TXN;
 
+constant $PROGRAM = 'mktxn';
+constant $VERSION = v0.0.2;
+
 # emit {{{
 
 multi sub emit(
@@ -271,7 +274,7 @@ sub gen-txninfo(
     die unless has-pkgname-pkgver-pkgrel(%txninfo);
 
     # note the compiler name and version, and time of compile
-    %txninfo<compiler> = $GLOBAL::PROGRAM ~ ' v' ~ $GLOBAL::VERSION ~ " $dt";
+    %txninfo<compiler> = $PROGRAM ~ ' v' ~ $VERSION ~ " $dt";
 
     %txninfo;
 }
