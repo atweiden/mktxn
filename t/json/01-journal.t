@@ -26,8 +26,8 @@ subtest
     my @txn = from-txn(:$file);
 
     # with TXN (JSON)
-    use JSON::Tiny;
     my $json = from-txn(:$file, :json);
+    use JSON::Fast;
     my @round-trip = from-json($json);
 
     is-deeply(

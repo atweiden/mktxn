@@ -1,4 +1,5 @@
 use v6;
+use JSON::Fast;
 use TXN::Parser;
 unit module TXN;
 
@@ -41,7 +42,6 @@ multi sub emit(:@txn!, Bool:D :$json! where *.so)
         @txn[$i]<header><date> = ~@txn[$i]<header><date>;
     }
 
-    use JSON::Tiny;
     to-json(@txn);
 }
 
@@ -112,7 +112,6 @@ multi sub mktxn(
     mkdir $build-dir;
 
     # serialize .TXNINFO to JSON
-    use JSON::Tiny;
     spurt $txninfo-file, to-json(%txninfo) ~ "\n";
 
     say "Creating txn pkg \"%txninfo<pkgname>\"…";
