@@ -1,5 +1,5 @@
 use v6;
-use JSON::Fast;
+use JSON::Tiny;
 use TXN::Parser;
 unit module TXN;
 
