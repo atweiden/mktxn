@@ -85,7 +85,7 @@ sub USAGE()
       -R, --pkgrel=RELEASE
         the release number of release build
       -I, --txndir=PATH
-        the <include> directory (default: ~/.mktxn/txn)
+        the <include> directory (default: ~/.config/mktxn/txn)
       -T, --template=TEMPLATE
         the location of the config template for release build
       -V, --pkgver=VERSION
