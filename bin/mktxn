@@ -19,7 +19,8 @@ multi sub MAIN(
     Str :V(:$pkgver),
     Int :R(:$pkgrel),
     Str :D(:$pkgdesc),
-    Str :T(:$template)
+    Str :T(:$template),
+    Str :I(:$txndir)
 )
 {
     my %opts;
@@ -28,6 +29,7 @@ multi sub MAIN(
     %opts<pkgrel> = $pkgrel if $pkgrel;
     %opts<pkgver> = $pkgver if $pkgver;
     %opts<template> = $template if $template;
+    %opts<txndir> = $txndir if $txndir;
     use TXN;
     mktxn(:$file, :release, |%opts);
 }
@@ -70,6 +72,7 @@ sub USAGE()
             [--pkgver=VERSION]
             [--pkgrel=RELEASE]
             [--pkgdesc=DESCRIPTION]
+            [--txndir=PATH]
             [--template=TEMPLATE]
             FILE                            Make release build from file
       mktxn [--mode=MODE] serialize FILE    Serialize transaction journal
@@ -81,6 +84,8 @@ sub USAGE()
         the name of release build
       -R, --pkgrel=RELEASE
         the release number of release build
+      -I, --txndir=PATH
+        the <include> directory (default: ~/.mktxn/txn)
       -T, --template=TEMPLATE
         the location of the config template for release build
       -V, --pkgver=VERSION
