@@ -164,9 +164,14 @@ sub prepare(
         %prepare<pkgver> = %template<pkgver> if %template<pkgver>;
         %prepare<pkgrel> = Int(%template<pkgrel>) if %template<pkgrel>;
         %prepare<pkgdesc> = %template<pkgdesc> if %template<pkgdesc>;
-        %prepare<txndir> =
-            ~join('/', $template.IO.dirname, %template<txndir>).IO.resolve
-                if %template<txndir>;
+        if %template<txndir>
+        {
+            %prepare<txndir> = %template<txndir>.IO.is-relative
+                # resolve txndir path relative to template file
+                ?? ~join('/', $template.IO.dirname, %template<txndir>).IO.resolve
+                # absolute txndir path given, use it directly
+                !! %template<txndir>;
+        }
         %prepare<date-local-offset> =
             Int(%template<date-local-offset>) if %template<date-local-offset>;
     }
