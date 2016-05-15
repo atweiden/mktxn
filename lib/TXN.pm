@@ -296,16 +296,16 @@ sub package(%build (Str :$dt!, :@txn!, :%txninfo!))
 
 sub gen-txninfo(
     Str $dt,
-    Str :$pkgname,
-    Str :$pkgver,
-    Int :$pkgrel,
+    Str :$pkgname!,
+    Str :$pkgver!,
+    Int :$pkgrel!,
     Str :$pkgdesc
 ) returns Hash
 {
     my %txninfo;
-    %txninfo<pkgname> = $pkgname if $pkgname;
-    %txninfo<pkgver> = $pkgver if $pkgver;
-    %txninfo<pkgrel> = Int($pkgrel) if $pkgrel;
+    %txninfo<pkgname> = $pkgname;
+    %txninfo<pkgver> = $pkgver;
+    %txninfo<pkgrel> = Int($pkgrel);
     %txninfo<pkgdesc> = $pkgdesc if $pkgdesc;
 
     # note the compiler name and version, and time of compile
