@@ -14,28 +14,31 @@ use v6;
 
 # release
 multi sub MAIN(
-    Str:D $file,
+    Str $file,
     Str :N(:$pkgname),
     Str :V(:$pkgver),
     Int :R(:$pkgrel),
     Str :D(:$pkgdesc),
-    Str :T(:$template),
-    Str :I(:$txndir)
+    Str :I(:$txndir),
+    Int :L(:$date-local-offset),
+    Str :T(:$template)
 )
 {
     my %opts;
-    %opts<pkgdesc> = $pkgdesc if $pkgdesc;
     %opts<pkgname> = $pkgname if $pkgname;
-    %opts<pkgrel> = $pkgrel if $pkgrel;
     %opts<pkgver> = $pkgver if $pkgver;
+    %opts<pkgrel> = $pkgrel if $pkgrel;
+    %opts<pkgdesc> = $pkgdesc if $pkgdesc;
+    %opts<txndir> = ~$txndir.IO.resolve if $txndir;
+    %opts<date-local-offset> = Int($date-local-offset) if $date-local-offset;
     %opts<template> = $template if $template;
-    %opts<txndir> = $txndir if $txndir;
+
     use TXN;
     mktxn(:$file, :release, |%opts);
 }
 
 # serialize
-multi sub MAIN('serialize', Str:D $file, Str:D :m(:$mode) = 'perl')
+multi sub MAIN('serialize', Str $file, Str :m(:$mode) = 'perl')
 {
     use TXN;
     given $mode
@@ -66,30 +69,33 @@ multi sub MAIN('serialize', Str:D $file, Str:D :m(:$mode) = 'perl')
 
 sub USAGE()
 {
-    my Str:D $help-text = q:to/EOF/;
+    my Str $help-text = q:to/EOF/;
     Usage:
       mktxn [--pkgname=NAME]
             [--pkgver=VERSION]
             [--pkgrel=RELEASE]
             [--pkgdesc=DESCRIPTION]
             [--txndir=PATH]
+            [--date-local-offset=OFFSET]
             [--template=TEMPLATE]
             FILE                            Make release build from file
       mktxn [--mode=MODE] serialize FILE    Serialize transaction journal
 
     optional arguments:
-      -D, --pkgdesc=DESCRIPTION
-        the description of release build
       -N, --pkgname=NAME
         the name of release build
-      -R, --pkgrel=RELEASE
-        the release number of release build
-      -I, --txndir=PATH
-        the <include> directory (default: ~/.config/mktxn/txn)
-      -T, --template=TEMPLATE
-        the location of the config template for release build
       -V, --pkgver=VERSION
         the version number of release build
+      -R, --pkgrel=RELEASE
+        the release number of release build
+      -D, --pkgdesc=DESCRIPTION
+        the description of release build
+      -I, --txndir=PATH
+        the <include> directory (default: ~/.config/mktxn/txn)
+      -L, --date-local-offset=OFFSET
+        the local offset for dates without one (default: 0)
+      -T, --template=TEMPLATE
+        the location of the config template for release build
       -m, --mode=MODE
         the serialization format (json, perl)
     EOF

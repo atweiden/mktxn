@@ -1,4 +1,5 @@
 use v6;
+use Config::TOML;
 use JSON::Tiny;
 use TXN::Parser;
 unit module TXN;
@@ -9,11 +10,11 @@ constant $VERSION = v0.0.2;
 # emit {{{
 
 multi sub emit(
-    Str:D $content,
+    Str $content,
     Bool :$json,
     *%opts (
-        Int :$date-local-offset,
-        Str :$txndir
+        Str :$txndir,
+        Int :$date-local-offset
     )
 )
 {
@@ -22,11 +23,11 @@ multi sub emit(
 }
 
 multi sub emit(
-    Str:D :$file!,
+    Str :$file!,
     Bool :$json,
     *%opts (
-        Int :$date-local-offset,
-        Str :$txndir
+        Str :$txndir,
+        Int :$date-local-offset
     )
 )
 {
@@ -34,7 +35,7 @@ multi sub emit(
     emit(:@txn, :$json);
 }
 
-multi sub emit(:@txn!, Bool:D :$json! where *.so)
+multi sub emit(:@txn!, Bool :$json! where *.so)
 {
     # stringify DateTimes in preparation for JSON serialization
     loop (my Int $i = 0; $i < @txn.elems; $i++)
@@ -55,11 +56,11 @@ multi sub emit(:@txn!, Bool :$json)
 # from-txn {{{
 
 multi sub from-txn(
-    Str:D $content,
+    Str $content,
     *%opts (
-        Int :$date-local-offset,
         Bool :$json,
-        Str :$txndir
+        Str :$txndir,
+        Int :$date-local-offset
     )
 ) is export
 {
@@ -67,11 +68,11 @@ multi sub from-txn(
 }
 
 multi sub from-txn(
-    Str:D :$file!,
+    Str :$file!,
     *%opts (
-        Int :$date-local-offset,
         Bool :$json,
-        Str :$txndir
+        Str :$txndir,
+        Int :$date-local-offset
     )
 ) is export
 {
@@ -83,28 +84,173 @@ multi sub from-txn(
 # mktxn {{{
 
 multi sub mktxn(
-    Str:D :$file!,
-    Bool:D :$release! where *.so,
+    Str :$file!,
+    Bool :$release! where *.so,
     *%opts (
-        Int :$date-local-offset,
         Str :$pkgname,
         Str :$pkgver,
         Int :$pkgrel,
         Str :$pkgdesc,
-        Str :$template,
-        Str :$txndir
+        Str :$txndir,
+        Int :$date-local-offset,
+        Str :$template
     )
 ) is export
 {
-    my %build = build(:$file, |%opts);
+    my %prepare = prepare(|%opts);
 
-    my Str $dt = %build<dt>;
-    my @txn = %build<txn>.Array;
-    my %txninfo = %build<txninfo>;
+    say "Making txn pkg: %prepare<pkgname> ",
+        "%prepare<pkgver>-%prepare<pkgrel> (%prepare<dt>)";
 
-    say "Making txn pkg: %txninfo<pkgname> ",
-        "%txninfo<pkgver>-%txninfo<pkgrel> ($dt)";
+    my %build = build(:$file, |%prepare);
+    package(%build);
+}
 
+multi sub mktxn(
+    Str :$file!,
+    *%opts (
+        Str :$pkgname,
+        Str :$pkgver,
+        Int :$pkgrel,
+        Str :$pkgdesc,
+        Str :$txndir,
+        Int :$date-local-offset,
+        Str :$template
+    )
+) is export returns Hash
+{
+    my %prepare = prepare(|%opts);
+    my %build = build(:$file, |%prepare);
+}
+
+multi sub mktxn(
+    Str $content,
+    *%opts (
+        Str :$pkgname,
+        Str :$pkgver,
+        Int :$pkgrel,
+        Str :$pkgdesc,
+        Str :$txndir,
+        Int :$date-local-offset,
+        Str :$template
+    )
+) is export returns Hash
+{
+    my %prepare = prepare(|%opts);
+    my %build = build($content, |%prepare);
+}
+
+# end mktxn }}}
+
+# prepare {{{
+
+sub prepare(
+    Str :$pkgname,
+    Str :$pkgver,
+    Int :$pkgrel,
+    Str :$pkgdesc,
+    Str :$txndir,
+    Int :$date-local-offset,
+    Str :$template
+) returns Hash
+{
+    my %prepare = :dt(~DateTime.now);
+    if $template
+    {
+        my %h; %h<date-local-offset> =
+            Int($date-local-offset) if $date-local-offset;
+        my %template = from-toml(:file($template), |%h);
+        %prepare<pkgname> = %template<pkgname> if %template<pkgname>;
+        %prepare<pkgver> = %template<pkgver> if %template<pkgver>;
+        %prepare<pkgrel> = Int(%template<pkgrel>) if %template<pkgrel>;
+        %prepare<pkgdesc> = %template<pkgdesc> if %template<pkgdesc>;
+        %prepare<txndir> =
+            ~join('/', $template.IO.dirname, %template<txndir>).IO.resolve
+                if %template<txndir>;
+        %prepare<date-local-offset> =
+            Int(%template<date-local-offset>) if %template<date-local-offset>;
+    }
+
+    # cmdline flags overwrite template options if conflicts arise
+    %prepare<pkgname> = $pkgname if $pkgname;
+    %prepare<pkgver> = $pkgver if $pkgver;
+    %prepare<pkgrel> = Int($pkgrel) if $pkgrel;
+    %prepare<pkgdesc> = $pkgdesc if $pkgdesc;
+    %prepare<txndir> = ~$txndir.IO.resolve if $txndir;
+    %prepare<date-local-offset> = Int($date-local-offset) if $date-local-offset;
+
+    # check for existence of pkgname, pkgver, and pkgrel
+    die unless has-pkgname-pkgver-pkgrel(%prepare);
+
+    %prepare;
+}
+
+# end prepare }}}
+
+# build {{{
+
+multi sub build(
+    Str $content,
+    Str :$dt!,
+    Str :$txndir,
+    Int :$date-local-offset,
+    *%opts (
+        Str :$pkgname,
+        Str :$pkgver,
+        Int :$pkgrel,
+        Str :$pkgdesc,
+    )
+) returns Hash
+{
+    my %txninfo = gen-txninfo($dt, |%opts);
+
+    my %h;
+    %h<txndir> = $txndir if $txndir;
+    %h<date-local-offset> = Int($date-local-offset) if $date-local-offset;
+    my @txn = from-txn($content, |%h);
+
+    # compute basic stats about the transaction journal
+    %txninfo<count> = @txn.elems;
+    %txninfo<entities-seen> = get-entities-seen(@txn);
+
+    my %build = :$dt, :@txn, :%txninfo;
+}
+
+multi sub build(
+    Str :$file!,
+    Str :$dt!,
+    Str :$txndir,
+    Int :$date-local-offset,
+    *%opts (
+        Str :$pkgname,
+        Str :$pkgver,
+        Int :$pkgrel,
+        Str :$pkgdesc,
+    )
+) returns Hash
+{
+    my Str $f = resolve-txn-file-path($file);
+
+    my %txninfo = gen-txninfo($dt, |%opts);
+
+    my %h;
+    %h<txndir> = $txndir if $txndir;
+    %h<date-local-offset> = Int($date-local-offset) if $date-local-offset;
+    my @txn = from-txn(:file($f), |%h);
+
+    # compute basic stats about the transaction journal
+    %txninfo<count> = @txn.elems;
+    %txninfo<entities-seen> = get-entities-seen(@txn);
+
+    my %build = :$dt, :@txn, :%txninfo;
+}
+
+# end build }}}
+
+# package {{{
+
+sub package(%build (Str :$dt!, :@txn!, :%txninfo!))
+{
     # make build directory
     my Str $build-dir = $*CWD ~ '/build';
     my Str $txninfo-file = "$build-dir/.TXNINFO";
@@ -144,100 +290,7 @@ multi sub mktxn(
     rmdir $build-dir;
 }
 
-multi sub mktxn(
-    Str:D :$file!,
-    *%opts (
-        Int :$date-local-offset,
-        Str :$pkgname,
-        Str :$pkgver,
-        Int :$pkgrel,
-        Str :$pkgdesc,
-        Str :$template,
-        Str :$txndir
-    )
-) is export returns Hash
-{
-    my %build = build(:$file, |%opts);
-}
-
-multi sub mktxn(
-    Str:D $content,
-    *%opts (
-        Int :$date-local-offset,
-        Str :$pkgname,
-        Str :$pkgver,
-        Int :$pkgrel,
-        Str :$pkgdesc,
-        Str :$template,
-        Str :$txndir
-    )
-) is export returns Hash
-{
-    my %build = build($content, |%opts);
-}
-
-# end mktxn }}}
-
-# build {{{
-
-multi sub build(
-    Str:D $content,
-    Int :$date-local-offset,
-    Str :$txndir,
-    *%opts (
-        Str :$pkgname,
-        Str :$pkgver,
-        Int :$pkgrel,
-        Str :$pkgdesc,
-        Str :$template
-    )
-) returns Hash
-{
-    my Str $dt = ~DateTime.now;
-
-    my %h;
-    %h<date-local-offset> = $date-local-offset if $date-local-offset;
-    my %txninfo = gen-txninfo($dt, |%h, |%opts);
-    %h<txndir> = $txndir if $txndir;
-    my @txn = from-txn($content, |%h);
-
-    # compute basic stats about the transaction journal
-    %txninfo<count> = @txn.elems;
-    %txninfo<entities-seen> = get-entities-seen(@txn);
-
-    my %build = :$dt, :@txn, :%txninfo;
-}
-
-multi sub build(
-    Str:D :$file!,
-    Int :$date-local-offset,
-    Str :$txndir,
-    *%opts (
-        Str :$pkgname,
-        Str :$pkgver,
-        Int :$pkgrel,
-        Str :$pkgdesc,
-        Str :$template
-    )
-) returns Hash
-{
-    my Str $dt = ~DateTime.now;
-    my Str:D $f = resolve-txn-file-path($file);
-
-    my %h;
-    %h<date-local-offset> = $date-local-offset if $date-local-offset;
-    my %txninfo = gen-txninfo($dt, |%h, |%opts);
-    %h<txndir> = $txndir if $txndir;
-    my @txn = from-txn(:file($f), |%h);
-
-    # compute basic stats about the transaction journal
-    %txninfo<count> = @txn.elems;
-    %txninfo<entities-seen> = get-entities-seen(@txn);
-
-    my %build = :$dt, :@txn, :%txninfo;
-}
-
-# end build }}}
+# end package }}}
 
 # gen-txninfo {{{
 
@@ -246,31 +299,14 @@ sub gen-txninfo(
     Str :$pkgname,
     Str :$pkgver,
     Int :$pkgrel,
-    Str :$pkgdesc,
-    Str :$template,
-    *%opts (Int :$date-local-offset)
+    Str :$pkgdesc
 ) returns Hash
 {
     my %txninfo;
-
-    if $template
-    {
-        use Config::TOML;
-        my %template = from-toml(:file($template), |%opts);
-        %txninfo<pkgname> = %template<pkgname> if %template<pkgname>;
-        %txninfo<pkgver> = %template<pkgver> if %template<pkgver>;
-        %txninfo<pkgrel> = Int(%template<pkgrel>) if %template<pkgrel>;
-        %txninfo<pkgdesc> = %template<pkgdesc> if %template<pkgdesc>;
-    }
-
-    # cmdline options override values defined in template
     %txninfo<pkgname> = $pkgname if $pkgname;
     %txninfo<pkgver> = $pkgver if $pkgver;
     %txninfo<pkgrel> = Int($pkgrel) if $pkgrel;
     %txninfo<pkgdesc> = $pkgdesc if $pkgdesc;
-
-    # check for existence of pkgname, pkgver, and pkgrel
-    die unless has-pkgname-pkgver-pkgrel(%txninfo);
 
     # note the compiler name and version, and time of compile
     %txninfo<compiler> = $PROGRAM ~ ' v' ~ $VERSION ~ " $dt";
@@ -328,7 +364,7 @@ multi sub exists-readable-file(
 
 # you passed a direct-file-name.txn
 multi sub exists-readable-file(
-    Str:D $file where *.chars > 0 && *.IO.extension eq 'txn'
+    Str $file where *.chars > 0 && *.IO.extension eq 'txn'
 ) returns Bool
 {
     given exists-readable-file($file, :checks[$file.IO.e])
@@ -357,7 +393,7 @@ multi sub exists-readable-file(
 }
 
 # you used a shortcut by leaving off the trailing chars '.txn'
-multi sub exists-readable-file(Str:D $file where *.chars > 0) returns Bool
+multi sub exists-readable-file(Str $file where *.chars > 0) returns Bool
 {
     # append .txn to bare file path
     given exists-readable-file("$file.txn", :checks["$file.txn".IO.e])
