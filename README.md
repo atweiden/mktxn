@@ -168,7 +168,6 @@ to JSON.
 
 - Rakudo Perl6
 - [Config::TOML](https://github.com/atweiden/config-toml)
-- [JSON::Tiny](https://github.com/moritz/json)
 - [TXN::Parser](https://github.com/atweiden/txn-parser)
 
 ### Test Dependencies

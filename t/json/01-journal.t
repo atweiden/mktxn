@@ -27,8 +27,7 @@ subtest
 
     # with TXN (JSON)
     my $json = from-txn(:$file, :json);
-    use JSON::Tiny;
-    my @round-trip = from-json($json);
+    my @round-trip = Rakudo::Internals::JSON.from-json($json);
 
     is-deeply(
         @txn,

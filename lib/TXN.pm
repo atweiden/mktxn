@@ -1,11 +1,10 @@
 use v6;
 use Config::TOML;
-use JSON::Tiny;
 use TXN::Parser;
 unit module TXN;
 
 constant $PROGRAM = 'mktxn';
-constant $VERSION = v0.0.2;
+constant $VERSION = v0.0.3;
 
 # emit {{{
 
@@ -43,7 +42,7 @@ multi sub emit(:@txn!, Bool :$json! where *.so)
         @txn[$i]<header><date> = ~@txn[$i]<header><date>;
     }
 
-    to-json(@txn);
+    Rakudo::Internals::JSON.to-json(@txn);
 }
 
 multi sub emit(:@txn!, Bool :$json)
@@ -263,7 +262,7 @@ sub package(%build (Str :$dt!, :@txn!, :%txninfo!))
     mkdir $build-dir;
 
     # serialize .TXNINFO to JSON
-    spurt $txninfo-file, to-json(%txninfo) ~ "\n";
+    spurt $txninfo-file, Rakudo::Internals::JSON.to-json(%txninfo) ~ "\n";
 
     say "Creating txn pkg \"%txninfo<pkgname>\"…";
 
@@ -274,7 +273,7 @@ sub package(%build (Str :$dt!, :@txn!, :%txninfo!))
     }
 
     # serialize transactions to JSON
-    spurt $txnjson-file, to-json(@txn) ~ "\n";
+    spurt $txnjson-file, Rakudo::Internals::JSON.to-json(@txn) ~ "\n";
 
     # compress
     my Str $tarball =
