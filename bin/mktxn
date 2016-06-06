@@ -69,37 +69,39 @@ multi sub MAIN('serialize', Str $file, Str :m(:$mode) = 'perl')
 
 sub USAGE()
 {
-    my Str $help-text = q:to/EOF/;
+    constant $HELP = q:to/EOF/;
     Usage:
-      mktxn [--pkgname=NAME]
-            [--pkgver=VERSION]
-            [--pkgrel=RELEASE]
-            [--pkgdesc=DESCRIPTION]
-            [--txndir=PATH]
-            [--date-local-offset=OFFSET]
-            [--template=TEMPLATE]
-            FILE                            Make release build from file
-      mktxn [--mode=MODE] serialize FILE    Serialize transaction journal
+      mktxn [--pkgname=<name>]
+            [--pkgver=<version>]
+            [--pkgrel=<release>]
+            [--pkgdesc=<description>]
+            [--txndir=<dir>]
+            [--date-local-offset=<offset>]
+            [--template=<template>]
+            <file>                              Make release build from file
+      mktxn [--mode=<mode>] serialize <file>    Serialize transaction journal
 
     optional arguments:
-      -N, --pkgname=NAME
+      -h, --help
+        print this help message
+      -N, --pkgname=<name>
         the name of release build
-      -V, --pkgver=VERSION
+      -V, --pkgver=<version>
         the version number of release build
-      -R, --pkgrel=RELEASE
+      -R, --pkgrel=<release>
         the release number of release build
-      -D, --pkgdesc=DESCRIPTION
+      -D, --pkgdesc=<description>
         the description of release build
-      -I, --txndir=PATH
-        the <include> directory (default: ~/.config/mktxn/txn)
-      -L, --date-local-offset=OFFSET
-        the local offset for dates without one (default: 0)
-      -T, --template=TEMPLATE
+      -I, --txndir=<dir>
+        the include directory
+      -L, --date-local-offset=<offset>
+        the local offset for dates without one
+      -T, --template=<template>
         the location of the config template for release build
-      -m, --mode=MODE
-        the serialization format (json, perl)
+      -m, --mode=<mode>
+        the serialization format
     EOF
-    say $help-text.trim;
+    say $HELP.trim;
 }
 
 # vim: ft=perl6 fdm=marker fdl=0
