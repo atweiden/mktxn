@@ -52,7 +52,7 @@ my class TXN::Package
         $!pkgdesc = $pkgdesc if $pkgdesc;
 
         my DateTime $dt = now.DateTime;
-        say "Making txn pkg: $pkgname $pkgver-$pkgrel ($dt)" if $verbose;
+        say "Making txn pkg: $!pkgname $!pkgver-$!pkgrel ($dt)" if $verbose;
         $!compiler = $PROGRAM ~ ' v' ~ $VERSION ~ " $dt";
 
         # parse the accounting ledger
