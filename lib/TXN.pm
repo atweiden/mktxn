@@ -314,7 +314,7 @@ sub package(%txn-package (TXN::Parser::AST::Entry :@entry!, :%txn-info!))
     spurt $txn-info-file, Rakudo::Internals::JSON.to-json(%txn-info) ~ "\n";
 
     # serialize ledger AST to JSON
-    spurt $txn-json-file, Rakudo::Internals::JSON.to-json(@entry».to-json) ~ "\n";
+    spurt $txn-json-file, Rakudo::Internals::JSON.to-json(@entry».hash) ~ "\n";
 
     # compress
     my Str $tarball =

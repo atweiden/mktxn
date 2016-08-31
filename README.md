@@ -1,19 +1,19 @@
 # TXN
 
-Double-entry accounting ledger parser and serializer (mktxn)
+Double-entry accounting ledger parser and serializer
 
 
 ## Synopsis
 
 **cmdline**
 
-```bash
-$ mktxn \
-    --pkgname="txnjrnl" \
-    --pkgver="1.0.0" \
-    --pkgrel=1 \
-    --pkgdesc="My transactions" \
-    sample.txn
+```sh
+mktxn \
+  --pkgname="txnjrnl" \
+  --pkgver="1.0.0" \
+  --pkgrel=1 \
+  --pkgdesc="My transactions" \
+  sample.txn
 ```
 
 **perl6**
@@ -28,8 +28,7 @@ my $txn = Q:to/EOF/;
   Assets:Personal:Bankwest:Cheque    $1000 USD
   Equity:Personal                    $1000 USD
 EOF
-my @txn = from-txn($txn);
-my $json = from-txn($txn, :json);
+my TXN::Parser::AST::Entry @entry = from-txn($txn);
 ```
 
 Parse ledger from file:
@@ -38,15 +37,13 @@ Parse ledger from file:
 use TXN;
 
 my $file = 'sample.txn';
-my @txn = from-txn(:$file);
-my $json = from-txn(:$file, :json);
+my TXN::Parser::AST::Entry @entry = from-txn(:$file);
 ```
 
 
 ## Description
 
-Serializes double-entry accounting ledgers to JSON or Perlish object
-representation.
+Serializes double-entry accounting ledgers to JSON.
 
 ### Release Mode
 
@@ -80,74 +77,77 @@ txn.json contains the output of serializing the accounting ledger to JSON.
 ```json
 [
   {
-    "id": {
-      "text": "2013-01-01 \"I started the year with $1000 in Bankwest cheque account\"\n  Assets:Personal:Bankwest:Cheque    $1000.00 USD\n  Equity:Personal                    $1000.00 USD\n",
-      "xxhash": 1373719837,
-      "number": [
-        0
+    "id" : {
+      "xxhash" : 1468523538,
+      "text" : "2014-01-01 \"I started the year with $1000 in Bankwest cheque account\"\n  Assets:Personal:Bankwest:Cheque      $1000.00 USD\n  Equity:Personal                      $1000.00 USD",
+      "number" : [
+        3
       ]
     },
-    "header": {
-      "important": 0,
-      "tags": [],
-      "description": "I started the year with $1000 in Bankwest cheque account",
-      "date": "2013-01-01T00:00:00Z"
+    "header" : {
+      "tag" : [ ],
+      "important" : 0,
+      "description" : "I started the year with $1000 in Bankwest cheque account",
+      "date" : "2014-01-01"
     },
-    "postings": [
+    "posting" : [
       {
-        "id": {
-          "text": "Assets:Personal:Bankwest:Cheque    $1000.00 USD",
-          "xxhash": 352942826,
-          "entry-id": {
-            "text": "2013-01-01 \"I started the year with $1000 in Bankwest cheque account\"\n  Assets:Personal:Bankwest:Cheque    $1000.00 USD\n  Equity:Personal                    $1000.00 USD\n",
-            "xxhash": 1373719837,
-            "number": [
-              0
+        "annot" : null,
+        "id" : {
+          "xxhash" : 4134277096,
+          "text" : "Assets:Personal:Bankwest:Cheque      $1000.00 USD",
+          "entry-id" : {
+            "xxhash" : 1468523538,
+            "text" : "2014-01-01 \"I started the year with $1000 in Bankwest cheque account\"\n  Assets:Personal:Bankwest:Cheque      $1000.00 USD\n  Equity:Personal                      $1000.00 USD",
+            "number" : [
+              3
             ]
           },
-          "number": 0
+          "number" : 0
         },
-        "decinc": "INC",
-        "amount": {
-          "asset-code": "USD",
-          "exchange-rate": {},
-          "asset-symbol": "$",
-          "asset-quantity": 1000,
-          "plus-or-minus": ""
+        "drcr" : "DEBIT",
+        "decinc" : "INC",
+        "amount" : {
+          "asset-code" : "USD",
+          "asset-symbol" : "$",
+          "plus-or-minus" : null,
+          "asset-quantity" : 1000
         },
-        "account": {
-          "subaccount": [
+        "account" : {
+          "entity" : "Personal",
+          "path" : [
             "Bankwest",
             "Cheque"
           ],
-          "entity": "Personal",
-          "silo": "ASSETS"
+          "silo" : "ASSETS"
         }
       },
       {
-        "id": {
-          "text": "Equity:Personal                    $1000.00 USD",
-          "xxhash": 95742535,
-          "entry-id": {
-            "text": "2013-01-01 \"I started the year with $1000 in Bankwest cheque account\"\n  Assets:Personal:Bankwest:Cheque    $1000.00 USD\n  Equity:Personal                    $1000.00 USD\n",
-            "xxhash": 1373719837,
-            "number": [
-              0
+        "annot" : null,
+        "id" : {
+          "xxhash" : 344831063,
+          "text" : "Equity:Personal                      $1000.00 USD",
+          "entry-id" : {
+            "xxhash" : 1468523538,
+            "text" : "2014-01-01 \"I started the year with $1000 in Bankwest cheque account\"\n  Assets:Personal:Bankwest:Cheque      $1000.00 USD\n  Equity:Personal                      $1000.00 USD",
+            "number" : [
+              3
             ]
           },
-          "number": 1
+          "number" : 1
         },
-        "decinc": "INC",
-        "amount": {
-          "asset-code": "USD",
-          "exchange-rate": {},
-          "asset-symbol": "$",
-          "asset-quantity": 1000,
-          "plus-or-minus": ""
+        "drcr" : "CREDIT",
+        "decinc" : "INC",
+        "amount" : {
+          "asset-code" : "USD",
+          "asset-symbol" : "$",
+          "plus-or-minus" : null,
+          "asset-quantity" : 1000
         },
-        "account": {
-          "entity": "Personal",
-          "silo": "EQUITY"
+        "account" : {
+          "entity" : "Personal",
+          "path" : [ ],
+          "silo" : "EQUITY"
         }
       }
     ]
