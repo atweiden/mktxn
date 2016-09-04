@@ -1,6 +1,6 @@
 # TXN
 
-Double-entry accounting ledger parser and serializer
+Double-entry accounting ledger packager
 
 
 ## Synopsis
@@ -18,32 +18,20 @@ mktxn \
 
 **perl6**
 
-Parse ledger from string:
-
 ```perl6
 use TXN;
 
-my $txn = Q:to/EOF/;
-2014-01-01 "I started the year with $1000 in Bankwest"
-  Assets:Personal:Bankwest:Cheque    $1000 USD
-  Equity:Personal                    $1000 USD
-EOF
-my TXN::Parser::AST::Entry @entry = from-txn($txn);
-```
-
-Parse ledger from file:
-
-```perl6
-use TXN;
-
-my $file = 'sample.txn';
-my TXN::Parser::AST::Entry @entry = from-txn(:$file);
+my Str $file = 'sample.txn';
+my Str $pkgname = 'sample';
+my Str $pkgver = '1.0.0';
+my UInt $pkgrel = 1;
+my %pkg = mktxn(:$file, :$pkgname, :$pkgver, :$pkgrel, :$pkgdesc);
 ```
 
 
 ## Description
 
-Serializes double-entry accounting ledgers to JSON.
+Serializes double-entry accounting ledgers to JSON package format.
 
 ### Release Mode
 
@@ -167,6 +155,7 @@ txn.json contains the output of serializing the accounting ledger to JSON.
 - [Config::TOML](https://github.com/atweiden/config-toml)
 - [File::Presence](https://github.com/atweiden/file-presence)
 - [TXN::Parser](https://github.com/atweiden/txn-parser)
+- [TXN::Remarshal](https://github.com/atweiden/txn-remarshal)
 
 ### Test Dependencies
 
