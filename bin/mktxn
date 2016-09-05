@@ -55,7 +55,7 @@ sub USAGE()
             [--txn-dir=<dir>]
             [--date-local-offset=<offset>]
             [--template=<template>]
-            <file>                            Make release build from file
+            <file>                            Package TXN from file
 
     optional arguments:
       -h, --help
@@ -73,7 +73,7 @@ sub USAGE()
       -L, --date-local-offset=<offset>
         the local offset for dates without one
       -T, --template=<template>
-        the location of the config template for release build
+        the location of the config template for TXN package
     EOF
     say $HELP.trim;
 }
