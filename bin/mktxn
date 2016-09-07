@@ -57,7 +57,7 @@ sub USAGE()
             [--template=<template>]
             <file>                            Package TXN from file
 
-    optional arguments:
+    Options:
       -h, --help
         print this help message
       -N, --pkgname=<name>
