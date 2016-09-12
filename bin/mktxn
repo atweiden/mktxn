@@ -39,7 +39,7 @@ multi sub MAIN(
 
 sub resolve-path(Str $path) returns Str
 {
-    ~$path.subst(/^'~'/, $*HOME).IO.resolve;
+    ~$path.subst(/^'~/'/, $*HOME ~ '/').IO.resolve;
 }
 
 
