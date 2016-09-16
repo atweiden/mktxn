@@ -25,7 +25,7 @@ multi sub MAIN(
     Str :T(:$template)
 )
 {
-    my %opts{Str};
+    my %opts;
     %opts<pkgname> = $pkgname if $pkgname;
     %opts<pkgver> = $pkgver if $pkgver;
     %opts<pkgrel> = $pkgrel if $pkgrel;
