@@ -249,13 +249,13 @@ multi sub mktxn(
     Str:D :$file! where *.so,
     Bool:D :$release! where *.so,
     *%opts (
-        Str :$pkgname,
-        Str :$pkgver,
-        Int :$pkgrel,
-        Str :$pkgdesc,
-        Str :$txn-dir,
-        Int :$date-local-offset,
-        Str :$template
+        Str :pkgname($),
+        Str :pkgver($),
+        Int :pkgrel($),
+        Str :pkgdesc($),
+        Str :txn-dir($),
+        Int :date-local-offset($),
+        Str :template($)
     )
 ) is export
 {
@@ -268,13 +268,13 @@ multi sub mktxn(
     Str:D $content,
     Bool:D :$release! where *.so,
     *%opts (
-        Str :$pkgname,
-        Str :$pkgver,
-        Int :$pkgrel,
-        Str :$pkgdesc,
-        Str :$txn-dir,
-        Int :$date-local-offset,
-        Str :$template
+        Str :pkgname($),
+        Str :pkgver($),
+        Int :pkgrel($),
+        Str :pkgdesc($),
+        Str :txn-dir($),
+        Int :date-local-offset($),
+        Str :template($)
     )
 ) is export
 {
@@ -286,13 +286,13 @@ multi sub mktxn(
 multi sub mktxn(
     Str:D :$file! where *.so,
     *%opts (
-        Str :$pkgname,
-        Str :$pkgver,
-        Int :$pkgrel,
-        Str :$pkgdesc,
-        Str :$txn-dir,
-        Int :$date-local-offset,
-        Str :$template
+        Str :pkgname($),
+        Str :pkgver($),
+        Int :pkgrel($),
+        Str :pkgdesc($),
+        Str :txn-dir($),
+        Int :date-local-offset($),
+        Str :template($)
     )
 ) is export returns Hash:D
 {
@@ -302,13 +302,13 @@ multi sub mktxn(
 multi sub mktxn(
     Str:D $content,
     *%opts (
-        Str :$pkgname,
-        Str :$pkgver,
-        Int :$pkgrel,
-        Str :$pkgdesc,
-        Str :$txn-dir,
-        Int :$date-local-offset,
-        Str :$template
+        Str :pkgname($),
+        Str :pkgver($),
+        Int :pkgrel($),
+        Str :pkgdesc($),
+        Str :txn-dir($),
+        Int :date-local-offset($),
+        Str :template($)
     )
 ) is export returns Hash:D
 {
@@ -319,7 +319,7 @@ multi sub mktxn(
 # sub package {{{
 
 # serialize to JSON files on disk
-sub package(%txn-package (TXN::Parser::AST::Entry :@entry!, :%txn-info!))
+sub package(% (TXN::Parser::AST::Entry :@entry!, :%txn-info!))
 {
     say "Creating txn pkg \"%txn-info<pkgname>\"…";
 
