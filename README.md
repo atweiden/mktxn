@@ -22,7 +22,7 @@ mktxn
 ```perl6
 use TXN;
 my Str $pkgname = 'sample';
-my Str $pkgver = '1.0.0';
+my Version $pkgver .= new('1.0.0');
 my UInt $pkgrel = 1;
 my Str $pkgdesc = 'Sample transactions';
 my Str $source = 'sample.txn';
