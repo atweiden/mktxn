@@ -1,4 +1,4 @@
-# TXN
+# mktxn
 
 Double-entry accounting ledger packager
 
