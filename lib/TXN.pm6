@@ -285,7 +285,8 @@ multi sub makepkg(
     'message',
     'creating',
     % (
-        Str:D :$pkgname!
+        Str:D :$pkgname!,
+        *%
     )
     --> Nil
 )
@@ -340,7 +341,8 @@ multi sub makepkg(
         Str:D :$compiler!,
         Str:D :$pkgname!,
         Version:D :$pkgver!,
-        UInt:D :$pkgrel!
+        UInt:D :$pkgrel!,
+        *%
     )
     --> Nil
 )
@@ -380,7 +382,8 @@ sub build-tar-cmdline(
     % (
         Str:D :$pkgname!,
         Version:D :$pkgver!,
-        UInt:D :$pkgrel!
+        UInt:D :$pkgrel!,
+        *%
     ),
     Str:D $build-dir,
     Str:D $txn-info-file,
