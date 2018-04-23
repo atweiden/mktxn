@@ -234,7 +234,7 @@ multi sub mktxn(
         Str :$include-lib
     )
     --> Nil
-)
+) is export
 {
     my %pkg = TXN::Package.new(|%opts).hash;
     makepkg(%pkg);
@@ -251,7 +251,7 @@ multi sub mktxn(
         Str :$include-lib
     )
     --> Hash:D
-)
+) is export
 {
     my %pkg = TXN::Package.new(|%opts).hash;
 }
