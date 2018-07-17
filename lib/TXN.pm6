@@ -116,8 +116,8 @@ my class TXN::Package
     {
         my DateTime:D $dt = now.DateTime;
         $!compiler = "$PROGRAM v$VERSION $dt";
-        $!pkgdesc = $pkgdesc ?? $pkgdesc !! '';
-        $!pkgrel = $pkgrel ?? $pkgrel !! 1;
+        $!pkgdesc = $pkgdesc // '';
+        $!pkgrel = $pkgrel // 1;
         my %opts;
         %opts<date-local-offset> =
             $date-local-offset if $date-local-offset.defined;
