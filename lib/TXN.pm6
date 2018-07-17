@@ -130,6 +130,7 @@ my class TXN::Package
     proto method new(|)
     {*}
 
+    # read instructions from TXNBUILD file
     multi method new(
         *%opts (
             Str:D :$file! where .so,
@@ -141,6 +142,7 @@ my class TXN::Package
         self.bless(|%opts);
     }
 
+    # pass instructions explicitly
     multi method new(
         *%opts (
             Str:D :$pkgname!,
