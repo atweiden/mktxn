@@ -15,13 +15,13 @@ constant $VERSION = v0.1.0;
 # parse TXNBUILD with Config::TOML and store results
 my class TXNBUILD
 {
-    has VarNameBare:D $.pkgname is required;
-    has Version:D $.pkgver is required;
-    has UInt:D $.pkgrel = 1;
-    has Str:D $.pkgdesc = '';
-    has Str:D $.source is required;
-    has Int $.date-local-offset;
-    has Str $.include-lib;
+    has VarNameBare:D $!pkgname is required;
+    has Version:D $!pkgver is required;
+    has UInt:D $!pkgrel = 1;
+    has Str:D $!pkgdesc = '';
+    has Str:D $!source is required;
+    has Int $!date-local-offset;
+    has Str $!include-lib;
 
     submethod BUILD(
         Str:D :$file! where .so
@@ -47,6 +47,14 @@ my class TXNBUILD
     {
         self.bless(:$file);
     }
+
+    method pkgname(::?CLASS:D: --> VarNameBare:D) { $!pkgname }
+    method pkgver(::?CLASS:D: --> Version:D)      { $!pkgver }
+    method pkgrel(::?CLASS:D: --> UInt:D)         { $!pkgrel }
+    method pkgdesc(::?CLASS:D: --> Str:D)         { $!pkgdesc }
+    method source(::?CLASS:D: --> Str:D)          { $!source }
+    method date-local-offset(::?CLASS:D: --> Int) { $!date-local-offset }
+    method include-lib(::?CLASS:D: --> Str)       { $!include-lib }
 }
 
 # end TXNBUILD }}}
@@ -73,7 +81,7 @@ my class TXN::Package
         my DateTime:D $dt = now.DateTime;
         $!compiler = "$PROGRAM v$VERSION $dt";
         my TXNBUILD $txnbuild .= new(:$file);
-        $!pkgdesc = $txnbuild.pkgdesc if $txnbuild.pkgdesc;
+        $!pkgdesc = $txnbuild.pkgdesc;
         $!pkgname = $txnbuild.pkgname;
         $!pkgrel = $txnbuild.pkgrel;
         $!pkgver = $txnbuild.pkgver;
@@ -98,7 +106,7 @@ my class TXN::Package
     multi submethod BUILD(
         Str:D :$!pkgname!,
         Version:D :$!pkgver!,
-        Str:D :$source!,
+        Str:D :source($file)!,
         UInt :$pkgrel,
         Str :$pkgdesc,
         Int :$date-local-offset,
@@ -114,7 +122,7 @@ my class TXN::Package
         %opts<date-local-offset> =
             $date-local-offset if $date-local-offset.defined;
         %opts<include-lib> = $include-lib if $include-lib;
-        $!ledger = from-txn(:file($source), |%opts);
+        $!ledger = from-txn(:$file, |%opts);
         $!count = $!ledger.entry.elems;
         @!entities-seen = gen-entities-seen($!ledger.entry);
     }
