@@ -23,10 +23,7 @@ my class TXNBUILD
     has Int $!date-local-offset;
     has Str $!include-lib;
 
-    submethod BUILD(
-        Str:D :$file! where .so
-        --> Nil
-    )
+    submethod BUILD(Str:D :$file! --> Nil)
     {
         my %toml = from-toml(:$file);
         $!date-local-offset =
@@ -40,21 +37,18 @@ my class TXNBUILD
         $!source = %toml<source>;
     }
 
-    method new(
-        Str:D :$file! where .so
-        --> TXNBUILD:D
-    )
+    method new(Str:D :$file! where .so --> TXNBUILD:D)
     {
         self.bless(:$file);
     }
 
-    method pkgname(::?CLASS:D: --> VarNameBare:D) { $!pkgname }
-    method pkgver(::?CLASS:D: --> Version:D)      { $!pkgver }
-    method pkgrel(::?CLASS:D: --> UInt:D)         { $!pkgrel }
-    method pkgdesc(::?CLASS:D: --> Str:D)         { $!pkgdesc }
-    method source(::?CLASS:D: --> Str:D)          { $!source }
     method date-local-offset(::?CLASS:D: --> Int) { $!date-local-offset }
     method include-lib(::?CLASS:D: --> Str)       { $!include-lib }
+    method pkgdesc(::?CLASS:D: --> Str:D)         { $!pkgdesc }
+    method pkgname(::?CLASS:D: --> VarNameBare:D) { $!pkgname }
+    method pkgrel(::?CLASS:D: --> UInt:D)         { $!pkgrel }
+    method pkgver(::?CLASS:D: --> Version:D)      { $!pkgver }
+    method source(::?CLASS:D: --> Str:D)          { $!source }
 }
 
 # end TXNBUILD }}}
@@ -133,8 +127,8 @@ my class TXN::Package
     # read instructions from TXNBUILD file
     multi method new(
         *%opts (
-            Str:D :$file! where .so,
-            Bool :$verbose
+            Str:D :file($)! where .so,
+            Bool :verbose($)
         )
         --> TXN::Package:D
     )
@@ -145,13 +139,13 @@ my class TXN::Package
     # pass instructions explicitly
     multi method new(
         *%opts (
-            Str:D :$pkgname!,
-            Version:D :$pkgver!,
-            Str:D :$source!,
-            UInt :$pkgrel,
-            Str :$pkgdesc,
-            Int :$date-local-offset,
-            Str :$include-lib
+            Str:D :pkgname($)!,
+            Version:D :pkgver($)!,
+            Str:D :source($)!,
+            UInt :pkgrel($),
+            Str :pkgdesc($),
+            Int :date-local-offset($),
+            Str :include-lib($)
         )
         --> TXN::Package:D
     )
@@ -241,7 +235,7 @@ multi sub gen-include-lib(
 
 multi sub mktxn(
     Str:D :$file! where .so,
-    Bool:D :$release! where .so
+    Bool:D :release($)! where .so
     --> Nil
 ) is export
 {
@@ -259,7 +253,7 @@ multi sub mktxn(
 }
 
 multi sub mktxn(
-    Bool:D :$release! where .so,
+    Bool:D :release($)! where .so,
     *%opts (
         Str:D :$pkgname!,
         Version:D :$pkgver!,
