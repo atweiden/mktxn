@@ -23,6 +23,18 @@ my class TXNBUILD
     has Int $!date-local-offset;
     has Str $!include-lib;
 
+    # --- accessor {{{
+
+    method date-local-offset(::?CLASS:D:) { $!date-local-offset }
+    method include-lib(::?CLASS:D:) { $!include-lib }
+    method pkgdesc(::?CLASS:D:) { $!pkgdesc }
+    method pkgname(::?CLASS:D:) { $!pkgname }
+    method pkgrel(::?CLASS:D:) { $!pkgrel }
+    method pkgver(::?CLASS:D:) { $!pkgver }
+    method source(::?CLASS:D:) { $!source }
+
+    # --- end accessor }}}
+
     submethod BUILD(Str:D :$file! --> Nil)
     {
         my %toml = from-toml(:$file);
@@ -41,14 +53,6 @@ my class TXNBUILD
     {
         self.bless(:$file);
     }
-
-    method date-local-offset(::?CLASS:D: --> Int) { $!date-local-offset }
-    method include-lib(::?CLASS:D: --> Str)       { $!include-lib }
-    method pkgdesc(::?CLASS:D: --> Str:D)         { $!pkgdesc }
-    method pkgname(::?CLASS:D: --> VarNameBare:D) { $!pkgname }
-    method pkgrel(::?CLASS:D: --> UInt:D)         { $!pkgrel }
-    method pkgver(::?CLASS:D: --> Version:D)      { $!pkgver }
-    method source(::?CLASS:D: --> Str:D)          { $!source }
 }
 
 # end TXNBUILD }}}
