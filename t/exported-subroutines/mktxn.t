@@ -24,4 +24,4 @@ subtest('verify mktxn(...) eqv TXN::Parser.made', {
     is-deeply($ledger-from-txn-parser, $ledger-from-mktxn, 'Is expected value');
 });
 
-# vim: set filetype=perl6 foldmethod=marker foldlevel=0:
+# vim: set filetype=raku foldmethod=marker foldlevel=0:
