@@ -19,7 +19,7 @@ mktxn
 
 **raku**
 
-```perl6
+```raku
 use TXN;
 my Str $pkgname = 'sample';
 my Version $pkgver .= new('1.0.0');
@@ -163,7 +163,7 @@ To run the tests:
 ```
 $ git clone https://github.com/atweiden/mktxn && cd mktxn
 $ peru --file=.peru.yml --sync-dir="$PWD" sync
-$ PERL6LIB=lib prove -r -e perl6
+$ PERL6LIB=lib prove -r -e raku
 ```
 
 
